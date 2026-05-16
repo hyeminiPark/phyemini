@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="거래선CRM">
+<title>내 거래선 CRM</title>
+<style>
+:root{--bg:#0F0F1A;--surface:#1A1A2E;--card:#1E1E35;--accent:#6C63FF;--accent2:#A78BFA;--text:#F0EEFF;--subtext:#8B87A8;--border:rgba(108,99,255,0.2);--highlight:rgba(108,99,255,0.12);--danger:#EF4444;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+header{position:sticky;top:0;z-index:100;background:rgba(15,15,26,0.97);padding:50px 16px 12px;border-bottom:1px solid var(--border);}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.app-title{font-size:18px;font-weight:700;}
+.app-title span{color:var(--accent2);}
+.btn-group{display:flex;gap:6px;}
+.save-btn{background:var(--accent);color:white;border:none;border-radius:20px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer;}
+.load-btn{background:transparent;color:var(--accent2);border:1px solid var(--accent2);border-radius:20px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer;}
+.day-tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;}
+.day-tabs::-webkit-scrollbar{display:none;}
+.day-tab{flex-shrink:0;background:var(--surface);border:1px solid var(--border);color:var(--subtext);border-radius:20px;padding:7px 16px;font-size:14px;font-weight:500;cursor:pointer;}
+.day-tab.active{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.filters{padding:10px 16px;display:flex;gap:8px;align-items:center;}
+.filter-select{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:9px 10px;font-size:16px;flex-shrink:0;}
+.search-wrap{flex:1;position:relative;}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:9px 10px 9px 32px;font-size:16px;outline:none;}
+.search-input::placeholder{color:var(--subtext);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;}
+.stats-bar{padding:0 16px 10px;display:flex;gap:8px;}
+.stat-chip{background:var(--highlight);border:1px solid var(--border);border-radius:10px;padding:5px 12px;font-size:12px;color:var(--subtext);}
+.stat-chip strong{color:var(--accent2);}
+.cards{padding:0 14px 40px;display:flex;flex-direction:column;gap:9px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 15px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.card-left{display:flex;align-items:center;gap:8px;}
+.card-num{font-size:11px;color:var(--subtext);min-width:18px;}
+.card-name{font-size:16px;font-weight:700;}
+.card-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+.badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:8px;white-space:nowrap;}
+.badge-hospital{background:rgba(108,99,255,0.2);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);}
+.badge-day{background:rgba(255,255,255,0.07);color:var(--subtext);border:1px solid rgba(255,255,255,0.08);}
+.badge-am{background:rgba(251,191,36,0.15);color:#FBB924;border:1px solid rgba(251,191,36,0.25);}
+.badge-pm{background:rgba(99,179,237,0.15);color:#63B3ED;border:1px solid rgba(99,179,237,0.25);}
+.card-fields{display:flex;flex-direction:column;gap:7px;}
+.field-row{display:flex;align-items:flex-start;gap:8px;}
+.field-label{font-size:11px;color:var(--subtext);min-width:42px;padding-top:9px;flex-shrink:0;}
+.field-input{-webkit-appearance:none;flex:1;background:rgba(255,255,255,0.04);border:1px solid transparent;border-radius:10px;padding:8px 10px;font-size:16px;color:var(--text);outline:none;resize:none;overflow:hidden;line-height:1.5;min-height:36px;width:100%;}
+.field-input:focus{border-color:var(--accent);background:rgba(108,99,255,0.07);}
+.field-input::placeholder{color:rgba(139,135,168,0.4);}
+input[type="date"].field-input{-webkit-appearance:none;min-height:36px;cursor:pointer;overflow:visible;}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(0.6);}
+.date-wrap{flex:1;display:flex;align-items:center;gap:6px;}
+.del-date-btn{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.25);border-radius:8px;width:36px;height:36px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.empty{text-align:center;padding:60px 20px;color:var(--subtext);font-size:15px;}
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:opacity 0.3s;z-index:999;pointer-events:none;}
+.toast.show{opacity:1;}
+#fileInput{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="app-title">내 <span>거래선</span>들 💊</div>
+    <div class="btn-group">
+      <button class="load-btn" onclick="document.getElementById('fileInput').click()">불러오기</button>
+      <button class="save-btn" onclick="saveFile()">저장</button>
+    </div>
+  </div>
+  <div class="day-tabs">
+    <button class="day-tab" id="tab-All" onclick="setDay('All')">전체</button>
+    <button class="day-tab" id="tab-월" onclick="setDay('월')">월</button>
+    <button class="day-tab" id="tab-화" onclick="setDay('화')">화</button>
+    <button class="day-tab" id="tab-수" onclick="setDay('수')">수</button>
+    <button class="day-tab" id="tab-목" onclick="setDay('목')">목</button>
+    <button class="day-tab" id="tab-금" onclick="setDay('금')">금</button>
+  </div>
+</header>
+
+<input type="file" id="fileInput" accept=".json" onchange="loadFile(event)">
+
+<div class="filters">
+  <select class="filter-select" id="hospitalFilter" onchange="selHosp=this.value;render()">
+    <option value="전체">거래선</option>
+    <option value="동아대병원">동아대</option>
+    <option value="동의의료원">동의</option>
+    <option value="부산보훈병원">보훈</option>
+    <option value="좋은삼선병원">삼선</option>
+    <option value="메리놀병원">메리놀</option>
+  </select>
+  <select class="filter-select" id="timeFilter" onchange="selTime=this.value;render()">
+    <option value="전체">시간</option>
+    <option value="오전">오전</option>
+    <option value="오후">오후</option>
+  </select>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" placeholder="이름, 브랜드, 메모 검색" oninput="keyword=this.value;render()">
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+<div class="cards" id="cards"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// [데이터 원본 유지]
+var rawData=[].concat(
+  ["권영민","김대현","김영대","김철홍","박영진","박은화","박찬호","염수정","오성용","윤별아","이명진","이상엽","이성원","이수미","이종화","이종훈","임경희","조용락","차재관"].map(function(n){return{hospital:"동아대병원",day:"월",time:"오전",name:n};}),
+  ["김대현","김성은","김철홍","김현준","김혜련","박준용","이성원","이수미","이수이","이종윤","조상용","조용락","차윤정","최재형","허석재"].map(function(n){return{hospital:"동아대병원",day:"월",time:"오후",name:n};}),
+  ["김성은","김인수","김철홍","박경일","박종성","박준용","서정화","양동은","오성용","이성원","이윤경","이종화","이종훈","정성윤","조용락","차재관","한성호"].map(function(n){return{hospital:"동아대병원",day:"화",time:"오전",name:n};}),
+  ["김정신","김진경","김혜련","박경일","박종성","박찬호","안원석","염수정","윤별아","이상엽","이수미","이수이","이윤경","임경희","차재관","한성호"].map(function(n){return{hospital:"동아대병원",day:"화",time:"오후",name:n};}),
+  ["김대현","김성은","김영대","김인수","김정신","김혜련","박경일","박영진","박은화","박준용","박찬호","안원석","윤별아","이명진","이성원","이종윤","이혜정","한성호","허석재"].map(function(n){return{hospital:"동아대병원",day:"수",time:"오전",name:n};}),
+  ["김대현","김영대","김현준","박영진","박은화","박준용","서정화","양동은","오성용","이성원","이종화","이혜정","임경희","정성윤","최재형","한성호"].map(function(n){return{hospital:"동아대병원",day:"수",time:"오후",name:n};}),
+  ["권영민","김대현","김성은","김영대","김인수","김철홍","김현준","박종성","박찬호","안원석","염수정","이상엽","이성원","이수이","이종화","이혜정","조상용","차윤정","차재관","허석재"].map(function(n){return{hospital:"동아대병원",day:"목",time:"오전",name:n};}),
+  ["권영민","박종성","양동은","이명진","이상엽","이수미","이윤경","이종훈","조용락","차윤정","차재관"].map(function(n){return{hospital:"동아대병원",day:"목",time:"오후",name:n};}),
+  ["김정신","김현준","박경일","박은화","박찬호","서정화","안원석","양동은","윤별아","이상엽","이수이","이윤경","이종윤","이종화","임경희","조상용"].map(function(n){return{hospital:"동아대병원",day:"금",time:"오전",name:n};}),
+  ["김정신","김진경","김혜련","박준용","윤별아","정성윤","조상용","허석재"].map(function(n){return{hospital:"동아대병원",day:"금",time:"오후",name:n};}),
+  ["이희선","박진희","강지현","김원진","이상찬","남경협","장재훈","고종태","문규필","박원종"].map(function(n){return{hospital:"동의의료원",day:"월",time:"오전",name:n};}),
+  ["김민정","박진희","강지현","이희선","이상찬","남경협","장재훈","고종태","성윤재"].map(function(n){return{hospital:"동의의료원",day:"월",time:"오후",name:n};}),
+  ["이희선","김민정","강지현","김원진","이상찬","고종태","성윤재"].map(function(n){return{hospital:"동의의료원",day:"화",time:"오전",name:n};}),
+  ["박진희","김원진","이상찬","남경협","성윤재","문규필"].map(function(n){return{hospital:"동의의료원",day:"화",time:"오후",name:n};}),
+  ["김민정","박진희","강지현","김원진","이상찬","황기훈","고종태"].map(function(n){return{hospital:"동의의료원",day:"수",time:"오전",name:n};}),
+  ["이희선","강지현","문규필","황기훈","장재훈","박원종"].map(function(n){return{hospital:"동의의료원",day:"수",time:"오후",name:n};}),
+  ["이희선","김민정","강지현","김원진","이상찬","남경협","장재훈","고종태"].map(function(n){return{hospital:"동의의료원",day:"목",time:"오전",name:n};}),
+  ["김민정","박진희","이상찬","남경협","성윤재","문규필"].map(function(n){return{hospital:"동의의료원",day:"목",time:"오후",name:n};}),
+  ["박진희","강지현","김원진","이상찬","황기훈","고종태","박원종"].map(function(n){return{hospital:"동의의료원",day:"금",time:"오전",name:n};}),
+  ["박원종","문규필"].map(function(n){return{hospital:"동의의료원",day:"금",time:"오후",name:n};}),
+  ["김수홍","이은주","김수민","김은정","김주혁","김정렬","황선태","김동현","박소영"].map(function(n){return{hospital:"부산보훈병원",day:"월",time:"오전",name:n};}),
+  ["최종현","김현정","최재희","이유진","박소영","김세식","김재현"].map(function(n){return{hospital:"부산보훈병원",day:"월",time:"오후",name:n};}),
+  ["김수홍","김현정","이은주","이유진","김은정","김주혁","왕태현","김수민"].map(function(n){return{hospital:"부산보훈병원",day:"화",time:"오전",name:n};}),
+  ["김수홍","봉우리","이은주","최재희","김정렬","김동현","김재현","김세식"].map(function(n){return{hospital:"부산보훈병원",day:"화",time:"오후",name:n};}),
+  ["최종현","봉우리","이은주","김수민","김은정","김동현","황선태","박소영"].map(function(n){return{hospital:"부산보훈병원",day:"수",time:"오전",name:n};}),
+  ["봉우리","김현정","최재희","이유진","김주혁","김정렬","김재현","김세식"].map(function(n){return{hospital:"부산보훈병원",day:"수",time:"오후",name:n};}),
+  ["봉우리","이은주","김주혁","김은정","김정렬","왕태현","황선태"].map(function(n){return{hospital:"부산보훈병원",day:"목",time:"오전",name:n};}),
+  ["김수홍","최종현","김주혁","김정렬","김수민","김세식","황선태"].map(function(n){return{hospital:"부산보훈병원",day:"목",time:"오후",name:n};}),
+  ["최종현","김현정","이은주","김수민","김은정","김동현","김재현","황선태"].map(function(n){return{hospital:"부산보훈병원",day:"금",time:"오전",name:n};}),
+  ["봉우리","최재희","김주혁","이유진","박소영","황선태"].map(function(n){return{hospital:"부산보훈병원",day:"금",time:"오후",name:n};}),
+  ["은일수","김대경","오용승","허태영","김창완","이완석","최영근","김종호","성주욱(1,3)","심재광","이우철","길송이","김종열","양태일","조기용","임지훈"].map(function(n){return{hospital:"좋은삼선병원",day:"월",time:"오전",name:n};}),
+  ["조형래","김창완","이완석","허태영","오용승","김종호","성주욱","심재광(2,4)","박정민","최윤희","이우철","길송이"].map(function(n){return{hospital:"좋은삼선병원",day:"월",time:"오후",name:n};}),
+  ["조형래","이완석","오용승","김창완","최영근","김종호","성주욱","심재광","박정민","최윤희","임지훈"].map(function(n){return{hospital:"좋은삼선병원",day:"화",time:"오전",name:n};}),
+  ["은일수","김대경","김창완","김종열","최영근","김종호","성주욱","이우철","길송이","박정민","최윤희","양태일"].map(function(n){return{hospital:"좋은삼선병원",day:"화",time:"오후",name:n};}),
+  ["은일수","김대경","허태영","김창완","최영근","김종호","심재광","이우철","박정민","임지훈"].map(function(n){return{hospital:"좋은삼선병원",day:"수",time:"오전",name:n};}),
+  ["조형래","오용승","이완석","김종호","성주욱","심재광","최윤희","길송이","양태일","조기용"].map(function(n){return{hospital:"좋은삼선병원",day:"수",time:"오후",name:n};}),
+  ["조형래","오용승","최영근","김종호","성주욱","심재광","이우철","김종열","박정민","임지훈"].map(function(n){return{hospital:"좋은삼선병원",day:"목",time:"오전",name:n};}),
+  ["은일수","김대경","최영근","김종열","양태일","조기용","임지훈"].map(function(n){return{hospital:"좋은삼선병원",day:"목",time:"오후",name:n};}),
+  ["은일수","김대경","오용승","최영근","김종열","양태일","임지훈"].map(function(n){return{hospital:"좋은삼선병원",day:"금",time:"오전",name:n};}),
+  ["조형래","김창완","김종호","조기용","임지훈"].map(function(n){return{hospital:"좋은삼선병원",day:"금",time:"오후",name:n};}),
+  ["김지민","김태익","김종엽","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"월",time:"오전",name:n};}),
+  ["김지민","조길현","박경구","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"월",time:"오후",name:n};}),
+  ["석지혜","김태익","박경구","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"화",time:"오전",name:n};}),
+  ["석지혜","조길현","박경구","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"화",time:"오후",name:n};}),
+  ["김지민","조길현","김종엽","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"수",time:"오전",name:n};}),
+  ["김지민","김태익","김종엽","김호균"].map(function(n){return{hospital:"메리놀병원",day:"수",time:"오후",name:n};}),
+  ["석지혜","김태익","김종엽","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"목",time:"오전",name:n};}),
+  ["석지혜","김태익","김종엽","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"목",time:"오후",name:n};}),
+  ["석지혜","김태익","김종엽","김호균","이지현"].map(function(n){return{hospital:"메리놀병원",day:"금",time:"오전",name:n};}),
+  ["이지현","이동렬"].map(function(n){return{hospital:"메리놀병원",day:"금",time:"오후",name:n};})
+);
+
+var crmData=rawData.map(function(d,i){return{hospital:d.hospital,day:d.day,time:d.time,name:d.name,brand:"",memo:"",plan:"",lastVisit:"",_idx:i};});
+var days=["일","월","화","수","목","금","토"];
+var todayDay=days[new Date().getDay()];
+var selDay=(todayDay==="일"||todayDay==="토")?"All":todayDay;
+var selHosp="전체";
+var selTime="전체";
+var keyword="";
+
+function shortH(h){var m={"동아대병원":"동아대","동의의료원":"동의","부산보훈병원":"보훈","좋은삼선병원":"삼선","메리놀병원":"메리놀"};return m[h]||h;}
+
+function save(){
+  try{
+    localStorage.setItem("crm_v4",JSON.stringify(crmData));
+  }catch(e){
+    console.error("저장 공간 부족 혹은 샌드박스 제약 발생");
+  }
+}
+
+function loadStorage(){
+  try{
+    var s=localStorage.getItem("crm_v4");
+    if(s){
+      var p=JSON.parse(s);
+      for(var i=0; i<p.length; i++){
+        var v=p[i];
+        for(var j=0; j<crmData.length; j++){
+          if(crmData[j]._idx===v._idx){
+            crmData[j].brand=v.brand||"";
+            crmData[j].memo=v.memo||"";
+            crmData[j].plan=v.plan||"";
+            crmData[j].lastVisit=v.lastVisit||"";
+            break;
+          }
+        }
+      }
+    }
+  }catch(e){}
+}
+
+function saveFile(){
+  save();
+  try {
+    var b=new Blob([JSON.stringify(crmData,null,2)],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download="crm_"+new Date().toISOString().slice(0,10)+".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast("💾 전체 데이터 저장 완료!");
+  } catch(err) {
+    showToast("❌ 파일 저장이 제한된 환경입니다.");
+  }
+}
+
+function loadFile(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var p=JSON.parse(ev.target.result);
+      for(var i=0; i<p.length; i++){
+        var v=p[i];
+        for(var j=0; j<crmData.length; j++){
+          if(crmData[j]._idx===v._idx){
+            crmData[j].brand=v.brand||"";
+            crmData[j].memo=v.memo||"";
+            crmData[j].plan=v.plan||"";
+            crmData[j].lastVisit=v.lastVisit||"";
+            break;
+          }
+        }
+      }
+      save();render();
+      showToast("📂 불러오기 완료!");
+    }catch(err){showToast("❌ 올바르지 않은 데이터 구조입니다.");}
+  };
+  reader.readAsText(file);
+  e.target.value="";
+}
+
+function showToast(msg){
+  var t=document.getElementById("toast");
+  if(!t) return;
+  t.textContent=msg;t.className="toast show";
+  setTimeout(function(){t.className="toast";},2500);
+}
+
+function setDay(d){
+  selDay=d;
+  var tabs=document.querySelectorAll(".day-tab");
+  for(var i=0; i<tabs.length; i++)tabs[i].classList.remove("active");
+  var el=document.getElementById("tab-"+d);
+  if(el)el.classList.add("active");
+  render();
+}
+
+function rsz(ta){ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";}
+
+function getTodayString() {
+  var d = new Date();
+  var yyyy = d.getFullYear();
+  var mm = String(d.getMonth() + 1).padStart(2, '0');
+  var dd = String(d.getDate()).padStart(2, '0');
+  return yyyy + "-" + mm + "-" + dd;
+}
+
+// [개선] UI 연동성 강화를 위한 타겟 필드 실시간 동기화 함수
+function syncPersonData(idx, field, value) {
+  var target = crmData[idx];
+  if(!target) return;
+  for(var i=0; i<crmData.length; i++){
+    if(crmData[i].name === target.name && crmData[i].hospital === target.hospital) {
+      crmData[i][field] = value;
+      
+      // 화면 내에 노출된 동일 인물의 인풋 요소도 동시에 업데이트 (포커스 안 풀리게 DOM 직접 수정)
+      if (field === "lastVisit") {
+        var domDate = document.getElementById("date-" + crmData[i]._idx);
+        if(domDate) domDate.value = value;
+      } else {
+        var domTxt = document.querySelector('textarea[data-idx="'+crmData[i]._idx+'"][data-f="'+field+'"]');
+        if(domTxt && domTxt !== document.activeElement) {
+          domTxt.value = value;
+          rsz(domTxt);
+        }
+      }
+    }
+  }
+}
+
+function render(){
+  var filtered=[];
+  var seen={}; 
+  
+  for(var i=0; i<crmData.length; i++){
+    var d=crmData[i];
+    var kw=(d.name+d.hospital+d.brand+d.memo+d.plan).toLowerCase();
+    
+    if((selDay==="All"||d.day===selDay) && (selHosp==="전체"||d.hospital===selHosp) && (selTime==="전체"||d.time===selTime) && kw.indexOf(keyword.toLowerCase())>=0){
+      if(selDay === "All") {
+        var key = d.name + "_" + d.hospital;
+        if(seen[key]) continue;
+        seen[key] = true;
+      }
+      filtered.push(d);
+    }
+  }
+  
+  var am=0,pm=0;
+  for(var i=0; i<filtered.length; i++){if(filtered[i].time==="오전")am++; else pm++;}
+  
+  var sBar = document.getElementById("statsBar");
+  if(sBar) sBar.innerHTML='<div class="stat-chip">총 <strong>'+filtered.length+'</strong>명</div><div class="stat-chip">오전 <strong>'+am+'</strong></div><div class="stat-chip">오후 <strong>'+pm+'</strong></div>';
+
+  var cont=document.getElementById("cards");
+  if(!cont) return;
+  if(!filtered.length){cont.innerHTML='<div class="empty">🔍 결과가 없어요</div>';return;}
+  cont.innerHTML="";
+
+  for(var i=0; i<filtered.length; i++){
+    var d=filtered[i];
+    var tc=d.time==="오전"?"badge-am":"badge-pm";
+    var card=document.createElement("div");
+    card.className="card";
+    
+    var dayBadgeText = selDay === "All" ? "기본:" + d.day : d.day;
+
+    card.innerHTML=
+      '<div class="card-header">'+
+        '<div class="card-left"><span class="card-num">'+(i+1)+'</span><span class="card-name">'+d.name+'</span></div>'+
+        '<div class="card-badges"><span class="badge badge-hospital">'+shortH(d.hospital)+'</span><span class="badge badge-day">'+dayBadgeText+'</span><span class="badge '+tc+'">'+d.time+'</span></div>'+
+      '</div>'+
+      '<div class="card-fields">'+
+        '<div class="field-row"><span class="field-label">브랜드</span><textarea class="field-input" rows="1" placeholder="브랜드명" data-idx="'+d._idx+'" data-f="brand">'+d.brand+'</textarea></div>'+
+        '<div class="field-row"><span class="field-label">메모</span><textarea class="field-input" rows="1" placeholder="면담 내용" data-idx="'+d._idx+'" data-f="memo">'+d.memo+'</textarea></div>'+
+        '<div class="field-row"><span class="field-label">계획</span><textarea class="field-input" rows="1" placeholder="다음 방문 계획" data-idx="'+d._idx+'" data-f="plan">'+d.plan+'</textarea></div>'+
+        '<div class="field-row">'+
+          '<span class="field-label">면담일</span>'+
+          '<div class="date-wrap">'+
+            '<input type="date" class="field-input" id="date-'+d._idx+'" data-idx="'+d._idx+'" value="'+d.lastVisit+'">'+
+            '<button class="del-date-btn" data-idx="'+d._idx+'" title="날짜 삭제">X</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    cont.appendChild(card);
+  }
+
+  var tas=cont.querySelectorAll("textarea.field-input");
+  for(var i=0; i<tas.length; i++){
+    (function(ta){
+      setTimeout(function(){rsz(ta);},0);
+      ta.oninput=function(){
+        rsz(ta);
+        var idx = ta.dataset.idx;
+        var field = ta.dataset.f;
+        
+        syncPersonData(idx, field, ta.value);
+        
+        // 글자 입력 시 면담일이 누락되어 있다면 오늘 날짜 자동 기입 처리 고도화
+        if(ta.value.trim() !== "" && !crmData[idx].lastVisit){
+          var todayStr = getTodayString();
+          syncPersonData(idx, "lastVisit", todayStr);
+        }
+        save();
+      };
+    })(tas[i]);
+  }
+  
+  var inps=cont.querySelectorAll("input[type='date']");
+  for(var i=0; i<inps.length; i++){
+    (function(inp){
+      inp.onchange=function(){
+        syncPersonData(inp.dataset.idx, "lastVisit", inp.value);
+        save();
+      };
+    })(inps[i]);
+  }
+
+  var delBtns=cont.querySelectorAll(".del-date-btn");
+  for(var i=0; i<delBtns.length; i++){
+    (function(btn){
+      btn.onclick=function(){
+        var idx = btn.dataset.idx;
+        syncPersonData(idx, "lastVisit", ""); 
+        save();
+        showToast("🗑️ 면담일이 삭제되었습니다.");
+      };
+    })(delBtns[i]);
+  }
+}
+
+try {
+  loadStorage();
+} catch(e) {}
+
+setTimeout(function(){
+  setDay(selDay);
+}, 50);
+
+setInterval(save,10000);
+</script>
+
+</body>
+</html>
